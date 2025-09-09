@@ -266,6 +266,24 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
     """Upload and analyze tab"""
     st.header("📤 Upload & Analyze Project Brief")
     
+    # Project and Campaign Information
+    st.subheader("🎯 Project & Campaign Details")
+    with st.container():
+        col1, col2 = st.columns(2)
+        with col1:
+            campaign_name = st.text_input(
+                "🎯 Campaign Name",
+                placeholder="e.g., Summer 2024 Product Launch",
+                help="Give your ad campaign a descriptive name for easy identification"
+            )
+        with col2:
+            st.markdown("**📋 Project Selection**")
+            st.info("Choose which project this campaign belongs to")
+    
+    if not campaign_name.strip():
+        st.warning("⚠️ Please provide a campaign name")
+        return
+    
     # File upload section
     st.subheader("📁 Upload Document")
 
@@ -299,6 +317,14 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
                         st.session_state['selected_project_id'] = sel.get('id')
                         st.session_state['selected_project_name'] = sel.get('name')
                         st.info(f"📋 **Project Details:** {sel.get('description','No description available')}")
+            # Confirmation of selection
+            if st.session_state.get('selected_project_name'):
+                with st.container():
+                    cc1, cc2 = st.columns(2)
+                    with cc1:
+                        st.success(f"✅ **Project:** {st.session_state.get('selected_project_name')}")
+                    with cc2:
+                        st.success(f"✅ **Campaign:** {campaign_name}")
             else:
                 st.info("📤 No projects found. Using fallback options.")
                 st.session_state['selected_project_id'] = None
@@ -398,7 +424,8 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
                         "analysis_type": analysis_type,
                         "include_suggestions": include_suggestions,
                         "project_id": st.session_state.get('selected_project_id'),
-                        "project_name": st.session_state.get('selected_project_name', None)
+                        "project_name": st.session_state.get('selected_project_name', None),
+                        "campaign_name": campaign_name
                     }
                     
                     # Make API call

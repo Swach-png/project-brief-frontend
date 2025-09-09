@@ -277,8 +277,8 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
                 help="Give your ad campaign a descriptive name for easy identification"
             )
         with col2:
-            st.markdown("**📋 Project Selection**")
-            st.info("Choose which project this campaign belongs to")
+            # Removed Project Selection label to avoid redundancy
+            st.empty()
     
     if not campaign_name.strip():
         st.warning("⚠️ Please provide a campaign name")

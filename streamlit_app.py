@@ -268,6 +268,49 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
     
     # File upload section
     st.subheader("📁 Upload Document")
+
+    # Project selection (fetch from backend projects endpoint)
+    st.subheader("📋 Select Project")
+    st.info("Choose which project this ad campaign belongs to. The system will automatically retrieve the project's Basecamp message board and document vault.")
+    try:
+        resp = requests.get(f"{API_BASE_URL}/projects", timeout=API_TIMEOUT)
+        if resp.status_code == 200:
+            pdata = resp.json()
+            if pdata.get("success") and pdata.get("projects"):
+                projects = pdata["projects"]
+                options = ["Select a project..."] + [p.get("name", "Unnamed Project") for p in projects if p.get("status")=="active"]
+                options.append("Other - Custom Project")
+                selected_project = st.selectbox("🏗️ Project", options=options, help="Select the project this campaign belongs to from your Basecamp projects")
+                if selected_project == "Select a project...":
+                    st.warning("⚠️ Please select a project")
+                    return
+                if selected_project == "Other - Custom Project":
+                    custom_name = st.text_input("✏️ Custom Project Name", placeholder="Enter your project name")
+                    if not custom_name.strip():
+                        st.warning("⚠️ Please provide a custom project name")
+                        return
+                    final_project_name = custom_name
+                    st.session_state['selected_project_id'] = None
+                    st.session_state['selected_project_name'] = final_project_name
+                else:
+                    final_project_name = selected_project
+                    sel = next((p for p in projects if p.get("name")==selected_project), None)
+                    if sel:
+                        st.session_state['selected_project_id'] = sel.get('id')
+                        st.session_state['selected_project_name'] = sel.get('name')
+                        st.info(f"📋 **Project Details:** {sel.get('description','No description available')}")
+            else:
+                st.info("📤 No projects found. Using fallback options.")
+                st.session_state['selected_project_id'] = None
+                st.session_state['selected_project_name'] = None
+        else:
+            st.error(f"❌ Failed to fetch projects from backend: {resp.status_code}")
+            st.session_state['selected_project_id'] = None
+            st.session_state['selected_project_name'] = None
+    except Exception as e:
+        st.error(f"❌ Error fetching projects: {str(e)}")
+        st.session_state['selected_project_id'] = None
+        st.session_state['selected_project_name'] = None
     
     # User selection dropdowns for Basecamp notifications
     st.subheader("👥 Select Content Writer")
@@ -353,7 +396,9 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
                     data = {
                         "content_writer_id": content_writer_id,
                         "analysis_type": analysis_type,
-                        "include_suggestions": include_suggestions
+                        "include_suggestions": include_suggestions,
+                        "project_id": st.session_state.get('selected_project_id'),
+                        "project_name": st.session_state.get('selected_project_name', None)
                     }
                     
                     # Make API call

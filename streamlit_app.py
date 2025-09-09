@@ -317,14 +317,7 @@ def upload_and_analyze_tab(analysis_type: str, include_suggestions: bool):
                         st.session_state['selected_project_id'] = sel.get('id')
                         st.session_state['selected_project_name'] = sel.get('name')
                         st.info(f"📋 **Project Details:** {sel.get('description','No description available')}")
-            # Confirmation of selection
-            if st.session_state.get('selected_project_name'):
-                with st.container():
-                    cc1, cc2 = st.columns(2)
-                    with cc1:
-                        st.success(f"✅ **Project:** {st.session_state.get('selected_project_name')}")
-                    with cc2:
-                        st.success(f"✅ **Campaign:** {campaign_name}")
+            # (Removed confirmation box to avoid redundancy near campaign input)
             else:
                 st.info("📤 No projects found. Using fallback options.")
                 st.session_state['selected_project_id'] = None
